@@ -1,0 +1,2098 @@
+<!DOCTYPE html>
+<html lang="fr" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TARIKA (طريقة) — Le Bot WhatsApp pour le Maroc</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&family=Noto+Naskh+Arabic:wght@400;600;700&display=swap"
+        rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        teal: { DEFAULT: '#075E54', dark: '#054740', light: '#128C7E' },
+                        wgreen: { DEFAULT: '#25D366', light: '#34eb7a', dark: '#1da851' },
+                        wabg: '#F0F2F5',
+                        wamid: '#DCF8C6',
+                    },
+                    fontFamily: {
+                        display: ['Syne', 'sans-serif'],
+                        body: ['DM Sans', 'sans-serif'],
+                        arabic: ['Noto Naskh Arabic', 'serif'],
+                    },
+                    keyframes: {
+                        fadeUp: { '0%': { opacity: 0, transform: 'translateY(28px)' }, '100%': { opacity: 1, transform: 'translateY(0)' } },
+                        fadeIn: { '0%': { opacity: 0 }, '100%': { opacity: 1 } },
+                        slideLeft: { '0%': { opacity: 0, transform: 'translateX(40px)' }, '100%': { opacity: 1, transform: 'translateX(0)' } },
+                        bubble: { '0%': { opacity: 0, transform: 'translateY(10px) scale(.96)' }, '100%': { opacity: 1, transform: 'translateY(0) scale(1)' } },
+                        float: { '0%,100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-9px)' } },
+                        tierPulse: { '0%,100%': { borderColor: 'rgba(37,211,102,.18)', transform: 'scale(1)' }, '50%': { borderColor: 'rgba(37,211,102,.5)', transform: 'scale(1.02)' } },
+                    },
+                    animation: {
+                        fadeUp: 'fadeUp .65s ease forwards',
+                        fadeIn: 'fadeIn .5s ease forwards',
+                        slideLeft: 'slideLeft .7s ease forwards',
+                        bubble: 'bubble .45s ease forwards',
+                        float: 'float 4s ease-in-out infinite',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        * {
+            box-sizing: border-box
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: #F0F2F5;
+            color: #111B21;
+            overflow-x: hidden
+        }
+
+        /* ── SPA routing ── */
+        .view-content {
+            display: none
+        }
+
+        .view-content.view-active {
+            display: block;
+            animation: viewFadeIn .45s ease forwards
+        }
+
+        @keyframes viewFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(18px)
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0)
+            }
+        }
+
+        /* ── Nav ── */
+        #navbar {
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px)
+        }
+
+        .nav-link {
+            position: relative;
+            transition: color .2s
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -3px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: #25D366;
+            border-radius: 2px;
+            transition: width .3s ease
+        }
+
+        .nav-link:hover::after,
+        .nav-link.active::after {
+            width: 100%
+        }
+
+        .nav-link.active {
+            color: #075E54 !important
+        }
+
+        /* ── Buttons ── */
+        .btn-green {
+            background: linear-gradient(135deg, #25D366, #1da851);
+            transition: transform .2s, box-shadow .2s, filter .2s
+        }
+
+        .btn-green:hover {
+            transform: scale(1.05) translateY(-2px);
+            box-shadow: 0 10px 28px rgba(37, 211, 102, .4);
+            filter: brightness(1.05)
+        }
+
+        .btn-outline {
+            border: 2px solid #075E54;
+            color: #075E54;
+            transition: all .25s
+        }
+
+        .btn-outline:hover {
+            background: #075E54;
+            color: #fff
+        }
+
+        /* ── Cards ── */
+        .feature-card {
+            transition: transform .35s cubic-bezier(.22, .68, 0, 1.2), box-shadow .35s ease
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 28px 60px rgba(7, 94, 84, .15), 0 8px 24px rgba(0, 0, 0, .07)
+        }
+
+        .team-card {
+            transition: transform .35s cubic-bezier(.22, .68, 0, 1.2), box-shadow .35s ease
+        }
+
+        .team-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 24px 60px rgba(7, 94, 84, .17), 0 6px 20px rgba(0, 0, 0, .07)
+        }
+
+        .price-card {
+            transition: transform .3s ease, box-shadow .3s ease
+        }
+
+        .price-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 20px 50px rgba(7, 94, 84, .13)
+        }
+
+        /* ── Chat ── */
+        .chat-window {
+            background: #e5ddd5;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 32px 80px rgba(0, 0, 0, .32), 0 4px 16px rgba(0, 0, 0, .18)
+        }
+
+        .bubble-user {
+            background: #DCF8C6;
+            border-radius: 18px 18px 4px 18px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, .1)
+        }
+
+        .bubble-bot {
+            background: #fff;
+            border-radius: 18px 18px 18px 4px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, .1)
+        }
+
+        /* typing dots */
+        .dot-anim span {
+            display: inline-block;
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #999;
+            margin: 0 1.5px
+        }
+
+        .dot-anim span:nth-child(1) {
+            animation: dotBounce 1.2s ease .0s infinite
+        }
+
+        .dot-anim span:nth-child(2) {
+            animation: dotBounce 1.2s ease .2s infinite
+        }
+
+        .dot-anim span:nth-child(3) {
+            animation: dotBounce 1.2s ease .4s infinite
+        }
+
+        @keyframes dotBounce {
+
+            0%,
+            100% {
+                opacity: .3;
+                transform: translateY(0)
+            }
+
+            50% {
+                opacity: 1;
+                transform: translateY(-4px)
+            }
+        }
+
+        /* staggered bubble shows */
+        .cb1 {
+            animation: bubble .42s .3s ease both
+        }
+
+        .cb2 {
+            animation: bubble .42s 1.0s ease both
+        }
+
+        .cb3 {
+            animation: bubble .3s 1.7s ease both
+        }
+
+        .cb4 {
+            animation: bubble .42s 2.4s ease both
+        }
+
+        .cb5 {
+            animation: bubble .42s 3.5s ease both
+        }
+
+        /* ── Scroll reveal ── */
+        .reveal {
+            opacity: 0;
+            transform: translateY(26px);
+            transition: opacity .7s ease, transform .7s ease
+        }
+
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0)
+        }
+
+        /* ── Tier cards ── */
+        .tier-card {
+            transition: transform .3s ease, box-shadow .3s ease, border-color .3s ease
+        }
+
+        .tier-card.selected {
+            border-color: #25D366 !important;
+            box-shadow: 0 0 0 3px rgba(37, 211, 102, .14), 0 8px 24px rgba(37, 211, 102, .1);
+            transform: translateY(-3px)
+        }
+
+        .tier-pro-pulse::before {
+            content: '';
+            position: absolute;
+            inset: -3px;
+            border-radius: 1.2rem;
+            border: 2px solid rgba(37, 211, 102, .35);
+            animation: tierPulse 2.5s ease-in-out infinite;
+            pointer-events: none
+        }
+
+        /* ── Progress bar for Family Fund ── */
+        @keyframes fillBar {
+            from {
+                width: 0
+            }
+
+            to {
+                width: 68%
+            }
+        }
+
+        .fill-bar {
+            animation: fillBar 2.2s 1s ease forwards;
+            width: 0
+        }
+
+        /* ── Step connector ── */
+        .step-line {
+            flex: 1;
+            height: 1px;
+            background: rgba(37, 211, 102, .3);
+            margin: 0 4px
+        }
+
+        /* ── Tech tag ── */
+        .tech-tag {
+            background: rgba(37, 211, 102, .12);
+            color: #25D366;
+            border: 1px solid rgba(37, 211, 102, .22);
+            font-size: .68rem;
+            font-family: 'Syne', sans-serif;
+            letter-spacing: .04em;
+            font-weight: 600
+        }
+
+        /* ── Orb ── */
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(70px);
+            opacity: .18;
+            pointer-events: none
+        }
+
+        /* grid bg */
+        .grid-bg {
+            background-image: linear-gradient(rgba(7, 94, 84, .03) 1px, transparent 1px), linear-gradient(90deg, rgba(7, 94, 84, .03) 1px, transparent 1px);
+            background-size: 48px 48px
+        }
+
+        /* delay helpers */
+        .d1 {
+            animation-delay: .1s;
+            opacity: 0
+        }
+
+        .d2 {
+            animation-delay: .2s;
+            opacity: 0
+        }
+
+        .d3 {
+            animation-delay: .3s;
+            opacity: 0
+        }
+
+        .d4 {
+            animation-delay: .4s;
+            opacity: 0
+        }
+
+        .d5 {
+            animation-delay: .5s;
+            opacity: 0
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #F0F2F5
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #075E54;
+            border-radius: 6px
+        }
+
+        @media(max-width:768px) {
+            .hero-right {
+                margin-top: 3rem
+            }
+        }
+    </style>
+</head>
+
+<body class="antialiased">
+
+    <!-- ══════════════════════════════════════════
+  FIXED NAVBAR
+══════════════════════════════════════════ -->
+    <nav id="navbar" class="fixed top-0 left-0 right-0 z-50 bg-white/92 border-b border-gray-100 shadow-sm">
+        <div class="max-w-6xl mx-auto px-5 py-3 flex items-center justify-between gap-4">
+
+            <!-- Brand -->
+            <button onclick="showView('view-home')" class="flex items-center gap-2.5 flex-shrink-0">
+                <img src="data:image/png;base64,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"
+                    alt="TARIKA" style="height:42px;width:auto;object-fit:contain" />
+            </button>
+
+            <!-- Desktop nav -->
+            <div class="hidden md:flex items-center gap-7">
+                <button onclick="showView('view-concept')"
+                    class="nav-link text-sm font-body font-500 text-gray-600 hover:text-teal"
+                    data-view="view-concept">Concept</button>
+                <button onclick="showView('view-features')"
+                    class="nav-link text-sm font-body font-500 text-gray-600 hover:text-teal"
+                    data-view="view-features">Fonctionnalités</button>
+                <button onclick="showView('view-tarifs')"
+                    class="nav-link text-sm font-body font-500 text-gray-600 hover:text-teal"
+                    data-view="view-tarifs">Tarifs</button>
+                <button onclick="showView('view-team')"
+                    class="nav-link text-sm font-body font-500 text-gray-600 hover:text-teal"
+                    data-view="view-team">Notre Équipe</button>
+            </div>
+
+            <!-- Mobile hamburger -->
+            <button id="mobileMenuBtn" class="md:hidden p-2 rounded-lg text-gray-600" onclick="toggleMobileMenu()">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round">
+                    <line x1="3" y1="6" x2="21" y2="6" />
+                    <line x1="3" y1="12" x2="21" y2="12" />
+                    <line x1="3" y1="18" x2="21" y2="18" />
+                </svg>
+            </button>
+
+            <!-- CTA -->
+            <button
+                class="btn-green hidden sm:flex items-center gap-2 text-white text-sm font-display font-600 px-5 py-2.5 rounded-full shadow-lg flex-shrink-0">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="white">
+                    <path
+                        d="M12 2C6.48 2 2 6.48 2 12c0 1.85.5 3.58 1.37 5.07L2 22l5.12-1.34A9.93 9.93 0 0012 22c5.52 0 10-4.48 10-10S17.52 2 12 2z" />
+                </svg>
+                 <a href="https://wa.me/212775419053" target="_blank">
+                    <span class="hidden lg:inline">Démarrer sur WhatsApp</span>
+                    </a>
+                     <a href="https://wa.me/212775419053" target="_blank">
+                                    <span class="lg:hidden">WhatsApp</span>
+
+                    </a>
+            </button>
+        </div>
+
+        <!-- Mobile menu -->
+        <div id="mobileMenu" class="hidden md:hidden border-t border-gray-100 bg-white/98 px-5 py-4 space-y-3">
+            <button onclick="showView('view-home');toggleMobileMenu()"
+                class="block w-full text-left text-sm font-body text-gray-700 py-2">Accueil</button>
+            <button onclick="showView('view-concept');toggleMobileMenu()"
+                class="block w-full text-left text-sm font-body text-gray-700 py-2">Concept</button>
+            <button onclick="showView('view-features');toggleMobileMenu()"
+                class="block w-full text-left text-sm font-body text-gray-700 py-2">Fonctionnalités</button>
+            <button onclick="showView('view-tarifs');toggleMobileMenu()"
+                class="block w-full text-left text-sm font-body text-gray-700 py-2">Tarifs</button>
+            <button onclick="showView('view-team');toggleMobileMenu()"
+                class="block w-full text-left text-sm font-body text-gray-700 py-2">Notre Équipe</button>
+        </div>
+    </nav>
+
+
+    <!-- ══════════════════════════════════════════════════════════════
+  VIEW 1 — HOME
+══════════════════════════════════════════════════════════════ -->
+    <div id="view-home" class="view-content">
+        <section class="relative min-h-screen pt-24 pb-20 flex items-center overflow-hidden grid-bg"
+            style="background:#FAFBFC">
+            <div class="orb w-96 h-96 -top-20 -left-32" style="background:#25D366"></div>
+            <div class="orb w-80 h-80 -bottom-24 -right-16" style="background:#075E54"></div>
+
+            <div class="relative max-w-6xl mx-auto px-5 w-full">
+                <div class="flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
+
+                    <!-- LEFT -->
+                    <div class="flex-1 max-w-xl">
+                        <!-- Badge -->
+                        <div class="inline-flex items-center gap-2.5 rounded-full px-4 py-2 mb-7 animate-fadeUp d1"
+                            style="background:rgba(37,211,102,.08);border:1px solid rgba(37,211,102,.2)">
+                            <span class="relative flex h-2.5 w-2.5">
+                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
+                                    style="background:#25D366"></span>
+                                <span class="relative inline-flex rounded-full h-2.5 w-2.5"
+                                    style="background:#25D366"></span>
+                            </span>
+                            <span class="text-xs font-display font-600 tracking-widest uppercase"
+                                style="color:#075E54">DiNext'26 Hackathon · FS Oujda</span>
+                        </div>
+
+                        <!-- Headline -->
+                        <h1 class="font-display font-800 text-4xl sm:text-5xl lg:text-[3.3rem] leading-[1.1] mb-5 animate-fadeUp d2"
+                            style="color:#111B21">
+                            Le <span style="color:#25D366">partage d'argent</span><br />comme on parle.
+                        </h1>
+
+                        <p class="font-body text-base sm:text-lg leading-relaxed mb-8 max-w-lg animate-fadeUp d3"
+                            style="color:#3b4a54">
+                            Le premier bot WhatsApp natif avec IA pour gérer vos colocs et comptes au Maroc. <strong
+                                style="color:#111B21">Sans friction, sans app à télécharger.</strong>
+                        </p>
+
+                        <!-- Tier Selector -->
+                        <div class="mb-9 animate-fadeUp d4">
+                            <div class="flex items-center gap-2 mb-4">
+                                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#075E54"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path
+                                        d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z" />
+                                    <line x1="7" y1="7" x2="7.01" y2="7" />
+                                </svg>
+                                <span class="text-sm font-display font-700 uppercase tracking-wider"
+                                    style="color:#075E54">Nos Formules</span>
+                            </div>
+                            <div class="grid grid-cols-3 gap-3">
+
+                                <!-- FREE -->
+                                <div class="tier-card relative cursor-pointer rounded-2xl p-4 border-2 border-gray-200 bg-white"
+                                    data-tier="free" onclick="selectTier('free')">
+                                    <div class="flex items-center gap-1.5 mb-2">
+                                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6b7280"
+                                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                                        </svg>
+                                        <span
+                                            class="text-xs font-display font-700 uppercase tracking-wider text-gray-500">Free</span>
+                                    </div>
+                                    <div class="font-display font-800 text-xl mb-2" style="color:#111B21">0 <span
+                                            class="text-xs font-500 text-gray-400">MAD</span></div>
+                                    <div class="space-y-1.5">
+                                        <div class="flex items-center gap-1.5"><svg width="11" height="11"
+                                                viewBox="0 0 12 12" fill="none">
+                                                <path d="M2 6l3 3 5-5" stroke="#25D366" stroke-width="2"
+                                                    stroke-linecap="round" stroke-linejoin="round" />
+                                            </svg><span class="text-[11px] text-gray-500">Splits basiques</span></div>
+                                        <div class="flex items-center gap-1.5"><svg width="11" height="11"
+                                                viewBox="0 0 12 12" fill="none">
+                                                <path d="M2 6l3 3 5-5" stroke="#25D366" stroke-width="2"
+                                                    stroke-linecap="round" stroke-linejoin="round" />
+                                            </svg><span class="text-[11px] text-gray-500">OCR standard</span></div>
+                                    </div>
+                                </div>
+
+                                <!-- PRO -->
+                                <div class="tier-card tier-pro-pulse relative cursor-pointer rounded-2xl p-4 border-2 bg-white selected"
+                                    style="border-color:#25D366" data-tier="pro" onclick="selectTier('pro')">
+                                    <div class="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full text-[10px] font-display font-700 text-white uppercase tracking-wider whitespace-nowrap"
+                                        style="background:linear-gradient(135deg,#25D366,#1da851)">Plus Populaire</div>
+                                    <div class="flex items-center gap-1.5 mb-2 mt-1">
+                                        <svg width="15" height="15" viewBox="0 0 24 24" fill="#25D366" stroke="#25D366"
+                                            stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                            <polygon
+                                                points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                                        </svg>
+                                        <span class="text-xs font-display font-700 uppercase tracking-wider"
+                                            style="color:#25D366">Pro</span>
+                                    </div>
+                                    <div class="font-display font-800 text-xl mb-2" style="color:#111B21">29 <span
+                                            class="text-xs font-500 text-gray-400">MAD/mois</span></div>
+                                    <div class="space-y-1.5">
+                                        <div class="flex items-center gap-1.5"><svg width="11" height="11"
+                                                viewBox="0 0 12 12" fill="none">
+                                                <path d="M2 6l3 3 5-5" stroke="#25D366" stroke-width="2"
+                                                    stroke-linecap="round" stroke-linejoin="round" />
+                                            </svg><span class="text-[11px] text-gray-500">Analytics groupe</span></div>
+                                        <div class="flex items-center gap-1.5"><svg width="11" height="11"
+                                                viewBox="0 0 12 12" fill="none">
+                                                <path d="M2 6l3 3 5-5" stroke="#25D366" stroke-width="2"
+                                                    stroke-linecap="round" stroke-linejoin="round" />
+                                            </svg><span class="text-[11px] text-gray-500">OCR prioritaire</span></div>
+                                        <div class="flex items-center gap-1.5"><svg width="11" height="11"
+                                                viewBox="0 0 12 12" fill="none">
+                                                <path d="M2 6l3 3 5-5" stroke="#25D366" stroke-width="2"
+                                                    stroke-linecap="round" stroke-linejoin="round" />
+                                            </svg><span class="text-[11px] text-gray-500">Rappels auto</span></div>
+                                    </div>
+                                </div>
+
+                                <!-- MAX -->
+                                <div class="tier-card relative cursor-pointer rounded-2xl p-4 border-2 border-gray-200 bg-white"
+                                    data-tier="max" onclick="selectTier('max')">
+                                    <div class="flex items-center gap-1.5 mb-2">
+                                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6b7280"
+                                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <rect x="2" y="7" width="20" height="14" rx="2" />
+                                            <path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16" />
+                                        </svg>
+                                        <span
+                                            class="text-xs font-display font-700 uppercase tracking-wider text-gray-500">Max</span>
+                                    </div>
+                                    <div class="font-display font-800 text-xl mb-2" style="color:#111B21">99 <span
+                                            class="text-xs font-500 text-gray-400">MAD/mois</span></div>
+                                    <div class="space-y-1.5">
+                                        <div class="flex items-center gap-1.5"><svg width="11" height="11"
+                                                viewBox="0 0 12 12" fill="none">
+                                                <path d="M2 6l3 3 5-5" stroke="#25D366" stroke-width="2"
+                                                    stroke-linecap="round" stroke-linejoin="round" />
+                                            </svg><span class="text-[11px] text-gray-500">MRE Bridge</span></div>
+                                        <div class="flex items-center gap-1.5"><svg width="11" height="11"
+                                                viewBox="0 0 12 12" fill="none">
+                                                <path d="M2 6l3 3 5-5" stroke="#25D366" stroke-width="2"
+                                                    stroke-linecap="round" stroke-linejoin="round" />
+                                            </svg><span class="text-[11px] text-gray-500">B2B entreprise</span></div>
+                                        <div class="flex items-center gap-1.5"><svg width="11" height="11"
+                                                viewBox="0 0 12 12" fill="none">
+                                                <path d="M2 6l3 3 5-5" stroke="#25D366" stroke-width="2"
+                                                    stroke-linecap="round" stroke-linejoin="round" />
+                                            </svg><span class="text-[11px] text-gray-500">Grandes résidences</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <!-- CTAs -->
+                        <div class="flex flex-col sm:flex-row gap-3 animate-fadeUp d5">
+                            <button
+                                class="btn-green inline-flex items-center justify-center gap-2.5 text-white font-display font-600 text-sm px-8 py-3.5 rounded-full shadow-xl">
+                                <svg width="17" height="17" viewBox="0 0 24 24" fill="white">
+                                    <path
+                                        d="M12 2C6.48 2 2 6.48 2 12c0 1.85.5 3.58 1.37 5.07L2 22l5.12-1.34A9.93 9.93 0 0012 22c5.52 0 10-4.48 10-10S17.52 2 12 2z" />
+                                </svg>
+                                Démarrer Gratuitement
+                            </button>
+                            <button onclick="showView('view-features')"
+                                class="btn-outline inline-flex items-center justify-center gap-2.5 font-display font-600 text-sm px-8 py-3.5 rounded-full">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="11" cy="11" r="8" />
+                                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                                </svg>
+                                Découvrir Pro
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- RIGHT — WhatsApp mockup -->
+                    <div class="flex-1 w-full max-w-[360px] mx-auto lg:mx-0 hero-right relative animate-slideLeft d4">
+
+                        <!-- Floating badges -->
+                        <div class="absolute -right-4 -top-3 hidden lg:flex items-center gap-2 bg-white rounded-2xl shadow-xl px-3.5 py-2.5 z-10 animate-float"
+                            style="box-shadow:0 8px 32px rgba(7,94,84,.13)">
+                            <div class="w-8 h-8 rounded-lg flex items-center justify-center"
+                                style="background:rgba(37,211,102,.1)">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#25D366"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M12 2a10 10 0 0110 10c0 5.52-4.48 10-10 10S2 17.52 2 12 6.48 2 12 2z" />
+                                    <path d="M8 12l2.5 2.5L16 9" />
+                                </svg>
+                            </div>
+                            <div>
+                                <div class="text-xs font-display font-700" style="color:#111B21">IA Active</div>
+                                <div class="text-[10px] text-gray-400">OCR Précis</div>
+                            </div>
+                        </div>
+
+                        <div class="absolute -left-4 bottom-16 hidden lg:flex items-center gap-2 bg-white rounded-2xl shadow-xl px-3.5 py-2.5 z-10 animate-float"
+                            style="animation-delay:2s;box-shadow:0 8px 32px rgba(7,94,84,.13)">
+                            <div class="w-8 h-8 rounded-lg flex items-center justify-center"
+                                style="background:rgba(7,94,84,.08)">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#075E54"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="3" y="11" width="18" height="11" rx="2" />
+                                    <path d="M7 11V7a5 5 0 0110 0v4" />
+                                </svg>
+                            </div>
+                            <div>
+                                <div class="text-xs font-display font-700" style="color:#111B21">Sécurisé</div>
+                                <div class="text-[10px] text-gray-400">Chiffré E2E</div>
+                            </div>
+                        </div>
+
+                        <!-- Phone shell -->
+                        <div class="relative rounded-[2.5rem] p-2 mx-auto"
+                            style="background:linear-gradient(145deg,#1a1a2e,#2d2d44);box-shadow:0 40px 100px rgba(0,0,0,.22),0 10px 40px rgba(0,0,0,.14),inset 0 1px 0 rgba(255,255,255,.09)">
+                            <div class="absolute top-0 left-1/2 -translate-x-1/2 w-28 h-6 rounded-b-2xl z-20"
+                                style="background:#1a1a2e"></div>
+                            <div class="chat-window rounded-[2rem]">
+
+                                <!-- Chat header -->
+                                <div class="px-4 py-3 flex items-center gap-3"
+                                    style="background:linear-gradient(90deg,#075E54,#128C7E)">
+                                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="white"
+                                        stroke-width="2" stroke-linecap="round" class="opacity-70">
+                                        <polyline points="15 18 9 12 15 6" />
+                                    </svg>
+                                    <div class="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0"
+                                        style="background:linear-gradient(135deg,#25D366,#1da851)">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="white">
+                                            <path
+                                                d="M12 2C6.48 2 2 6.48 2 12c0 1.85.5 3.58 1.37 5.07L2 22l5.12-1.34A9.93 9.93 0 0012 22c5.52 0 10-4.48 10-10S17.52 2 12 2z" />
+                                        </svg>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <div class="text-white font-display font-600 text-sm">TARIKA Bot</div>
+                                        <div class="text-white/60 text-[11px] flex items-center gap-1"><span
+                                                class="w-1.5 h-1.5 rounded-full inline-block"
+                                                style="background:#25D366"></span>en ligne</div>
+                                    </div>
+                                    <div class="flex gap-3.5 text-white/70">
+                                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                                            <path
+                                                d="M22 16.92v3a2 2 0 01-2.18 2A19.79 19.79 0 013 4.18 2 2 0 015.08 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 10.91a16 16 0 006 6l2.27-2.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z" />
+                                        </svg>
+                                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="2">
+                                            <circle cx="12" cy="5" r="1" />
+                                            <circle cx="12" cy="12" r="1" />
+                                            <circle cx="12" cy="19" r="1" />
+                                        </svg>
+                                    </div>
+                                </div>
+
+                                <!-- Date pill -->
+                                <div class="text-center py-2.5" style="background:#e5ddd5">
+                                    <span
+                                        class="bg-white/75 text-gray-500 text-[10px] rounded-lg px-3 py-1 shadow-sm">Aujourd'hui</span>
+                                </div>
+
+                                <!-- Bubbles -->
+                                <div class="px-3 pb-3 space-y-2" style="background:#e5ddd5;min-height:330px">
+
+                                    <!-- User sends receipt -->
+                                    <div class="flex justify-end cb1">
+                                        <div class="bubble-user px-3 py-2 max-w-[80%]">
+                                            <div class="w-full h-20 rounded-lg flex items-center justify-center mb-1.5"
+                                                style="background:linear-gradient(135deg,#f7f3ec,#ede5d8)">
+                                                <svg width="136" height="76" viewBox="0 0 136 76" fill="none">
+                                                    <rect x="8" y="4" width="120" height="68" rx="5" fill="white"
+                                                        stroke="#d4c9b0" stroke-width="1" />
+                                                    <rect x="32" y="9" width="72" height="4" rx="2" fill="#c0b89e" />
+                                                    <rect x="42" y="16" width="52" height="2.5" rx="1.25"
+                                                        fill="#ddd5c5" />
+                                                    <rect x="18" y="24" width="40" height="2" rx="1" fill="#e0d8c8" />
+                                                    <rect x="98" y="24" width="20" height="2" rx="1" fill="#c0b89e" />
+                                                    <rect x="18" y="30" width="36" height="2" rx="1" fill="#e0d8c8" />
+                                                    <rect x="98" y="30" width="20" height="2" rx="1" fill="#c0b89e" />
+                                                    <rect x="18" y="36" width="44" height="2" rx="1" fill="#e0d8c8" />
+                                                    <rect x="98" y="36" width="20" height="2" rx="1" fill="#c0b89e" />
+                                                    <line x1="18" y1="48" x2="118" y2="48" stroke="#d4c9b0"
+                                                        stroke-width="1" stroke-dasharray="3 2" />
+                                                    <rect x="18" y="54" width="30" height="3" rx="1.5" fill="#a09080" />
+                                                    <rect x="88" y="53" width="30" height="5" rx="2.5" fill="#075E54" />
+                                                </svg>
+                                            </div>
+                                            <div class="text-gray-500 text-[11px] flex items-center gap-1.5">
+                                                <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
+                                                    stroke="#6b7280" stroke-width="2" stroke-linecap="round">
+                                                    <path
+                                                        d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" />
+                                                    <circle cx="12" cy="13" r="4" />
+                                                </svg>
+                                                addition_déjeuner.jpg
+                                            </div>
+                                            <div
+                                                class="text-gray-400 text-[10px] text-right mt-0.5 flex items-center justify-end gap-1">
+                                                13:42
+                                                <svg width="16" height="9" viewBox="0 0 16 9" fill="none">
+                                                    <path d="M1.5 4.5l2.5 3L9 2" stroke="#53bdeb" stroke-width="1.5"
+                                                        stroke-linecap="round" />
+                                                    <path d="M5.5 4.5l2.5 3L13 2" stroke="#53bdeb" stroke-width="1.5"
+                                                        stroke-linecap="round" />
+                                                </svg>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- User text -->
+                                    <div class="flex justify-end cb2">
+                                        <div class="bubble-user px-3 py-2 max-w-[80%]">
+                                            <p class="text-gray-800 text-[13px]">partage entre Marouane, Oumaima et
+                                                Zakariyae svp</p>
+                                            <div
+                                                class="text-gray-400 text-[10px] text-right mt-0.5 flex items-center justify-end gap-1">
+                                                13:42
+                                                <svg width="16" height="9" viewBox="0 0 16 9" fill="none">
+                                                    <path d="M1.5 4.5l2.5 3L9 2" stroke="#53bdeb" stroke-width="1.5"
+                                                        stroke-linecap="round" />
+                                                    <path d="M5.5 4.5l2.5 3L13 2" stroke="#53bdeb" stroke-width="1.5"
+                                                        stroke-linecap="round" />
+                                                </svg>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Typing -->
+                                    <div class="flex justify-start cb3">
+                                        <div class="bubble-bot px-4 py-3 dot-anim flex items-center gap-1">
+                                            <span></span><span></span><span></span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Bot reply -->
+                                    <div class="flex justify-start cb4">
+                                        <div class="bubble-bot px-3 py-3 max-w-[90%]">
+                                            <div class="flex items-center gap-1.5 mb-2.5">
+                                                <div class="w-4 h-4 rounded-full flex items-center justify-center"
+                                                    style="background:linear-gradient(135deg,#25D366,#1da851)"><svg
+                                                        width="8" height="8" viewBox="0 0 24 24" fill="white">
+                                                        <path
+                                                            d="M12 2C6.48 2 2 6.48 2 12c0 1.85.5 3.58 1.37 5.07L2 22l5.12-1.34A9.93 9.93 0 0012 22c5.52 0 10-4.48 10-10S17.52 2 12 2z" />
+                                                    </svg></div>
+                                                <span class="text-[10px] font-display font-600"
+                                                    style="color:#075E54">TARIKA Bot</span>
+                                            </div>
+                                            <div class="rounded-xl overflow-hidden"
+                                                style="border:1px solid rgba(37,211,102,.15)">
+                                                <div class="px-3 py-2 flex items-center gap-2"
+                                                    style="background:linear-gradient(90deg,#075E54,#128C7E)">
+                                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+                                                        stroke="white" stroke-width="2" stroke-linecap="round">
+                                                        <path
+                                                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2" />
+                                                        <rect x="9" y="3" width="6" height="4" rx="1" />
+                                                    </svg>
+                                                    <span class="text-white text-[11px] font-display font-600">Reçu
+                                                        scanné avec succès</span>
+                                                </div>
+                                                <div class="px-3 py-2 border-b bg-white"
+                                                    style="border-color:rgba(37,211,102,.1)">
+                                                    <div class="flex items-center justify-between">
+                                                        <span class="text-xs font-display font-600"
+                                                            style="color:#111B21">Café Atlas — Oujda</span>
+                                                        <span class="text-xs font-display font-700"
+                                                            style="color:#075E54">270 DH</span>
+                                                    </div>
+                                                </div>
+                                                <div class="px-3 py-2 space-y-2 bg-white">
+                                                    <div class="flex items-center justify-between">
+                                                        <div class="flex items-center gap-2">
+                                                            <div class="w-5 h-5 rounded-full flex items-center justify-center text-white text-[8px] font-700"
+                                                                style="background:#075E54">M</div><span
+                                                                class="text-[11px]"
+                                                                style="color:#3b4a54">Marouane</span>
+                                                        </div><span class="text-[11px] font-display font-700"
+                                                            style="color:#111B21">90 DH</span>
+                                                    </div>
+                                                    <div class="flex items-center justify-between">
+                                                        <div class="flex items-center gap-2">
+                                                            <div class="w-5 h-5 rounded-full flex items-center justify-center text-white text-[8px] font-700"
+                                                                style="background:#25D366">O</div><span
+                                                                class="text-[11px]" style="color:#3b4a54">Oumaima</span>
+                                                        </div><span class="text-[11px] font-display font-700"
+                                                            style="color:#111B21">90 DH</span>
+                                                    </div>
+                                                    <div class="flex items-center justify-between">
+                                                        <div class="flex items-center gap-2">
+                                                            <div class="w-5 h-5 rounded-full flex items-center justify-center text-white text-[8px] font-700"
+                                                                style="background:#1a1a2e">Z</div><span
+                                                                class="text-[11px]"
+                                                                style="color:#3b4a54">Zakariyae</span>
+                                                        </div><span class="text-[11px] font-display font-700"
+                                                            style="color:#111B21">90 DH</span>
+                                                    </div>
+                                                </div>
+                                                <div class="px-3 py-2 flex items-center justify-between"
+                                                    style="background:rgba(37,211,102,.07);border-top:1px solid rgba(37,211,102,.1)">
+                                                    <span class="text-[10px] text-gray-400">Confirmer ?</span>
+                                                    <div class="flex items-center gap-1"><svg width="10" height="10"
+                                                            viewBox="0 0 24 24" fill="none" stroke="#25D366"
+                                                            stroke-width="2.5" stroke-linecap="round">
+                                                            <polyline points="20 6 9 17 4 12" />
+                                                        </svg><span class="text-[10px] font-display font-700"
+                                                            style="color:#25D366">Tapez OUI</span></div>
+                                                </div>
+                                            </div>
+                                            <div class="text-gray-400 text-[10px] text-right mt-0.5">13:43</div>
+                                        </div>
+                                    </div>
+
+                                    <!-- User confirms -->
+                                    <div class="flex justify-end cb5">
+                                        <div class="bubble-user px-3 py-2 max-w-[35%]">
+                                            <p class="text-gray-800 text-[13px] font-500 flex items-center gap-1">
+                                                OUI<svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+                                                    stroke="#075E54" stroke-width="2.5" stroke-linecap="round">
+                                                    <polyline points="20 6 9 17 4 12" />
+                                                </svg></p>
+                                            <div
+                                                class="text-gray-400 text-[10px] text-right flex items-center justify-end gap-1">
+                                                13:43<svg width="16" height="9" viewBox="0 0 16 9" fill="none">
+                                                    <path d="M1.5 4.5l2.5 3L9 2" stroke="#53bdeb" stroke-width="1.5"
+                                                        stroke-linecap="round" />
+                                                    <path d="M5.5 4.5l2.5 3L13 2" stroke="#53bdeb" stroke-width="1.5"
+                                                        stroke-linecap="round" />
+                                                </svg></div>
+                                        </div>
+                                    </div>
+
+                                </div>
+
+                                <!-- Input bar -->
+                                <div class="bg-white px-3 py-2.5 flex items-center gap-2">
+                                    <div class="w-8 h-8 rounded-full flex items-center justify-center"
+                                        style="background:rgba(7,94,84,.06)">
+                                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#6b7280"
+                                            stroke-width="1.8" stroke-linecap="round">
+                                            <circle cx="12" cy="12" r="10" />
+                                            <path d="M8 14s1.5 2 4 2 4-2 4-2" />
+                                            <line x1="9" y1="9" x2="9.01" y2="9" />
+                                            <line x1="15" y1="9" x2="15.01" y2="9" />
+                                        </svg>
+                                    </div>
+                                    <div
+                                        class="flex-1 bg-gray-50 rounded-full px-4 py-2 text-gray-400 text-xs border border-gray-200">
+                                        Message…</div>
+                                    <div class="w-8 h-8 rounded-full flex items-center justify-center"
+                                        style="background:#075E54">
+                                        <svg width="15" height="15" viewBox="0 0 24 24" fill="white">
+                                            <path d="M2 21l21-9L2 3v7l15 2-15 2z" />
+                                        </svg>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+    </div><!-- /view-home -->
+
+
+    <!-- ══════════════════════════════════════════════════════════════
+  VIEW 2 — CONCEPT
+══════════════════════════════════════════════════════════════ -->
+    <div id="view-concept" class="view-content">
+        <section class="pt-28 pb-24 px-5 min-h-screen" style="background:#F0F2F5">
+            <div class="max-w-6xl mx-auto">
+
+                <!-- Header -->
+                <div class="text-center mb-16">
+                    <div class="inline-flex items-center gap-2 border rounded-full px-4 py-1.5 mb-4 text-xs font-display font-600 tracking-widest uppercase"
+                        style="color:#075E54;border-color:#075E54;background:rgba(7,94,84,.06)">Le Concept</div>
+                    <h2 class="font-display font-800 text-4xl lg:text-5xl mb-4" style="color:#111B21">La friction
+                        financière<br /><span style="color:#075E54">f l-Meghrib</span></h2>
+                    <p class="font-body text-gray-500 text-lg max-w-2xl mx-auto">Le partage d'argent en groupe reste un
+                        problème non résolu pour des millions de Marocains — étudiants, familles, MRE. TARIKA change ça.
+                    </p>
+                </div>
+
+                <!-- Problem stats -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
+                    <div class="bg-white rounded-3xl p-8 text-center shadow-sm border border-gray-100 feature-card">
+                        <div class="font-display font-800 text-5xl mb-2" style="color:#075E54">87%</div>
+                        <p class="font-body text-gray-500 text-sm">des étudiants marocains gèrent les dépenses partagées
+                            par messages WhatsApp non structurés</p>
+                    </div>
+                    <div class="bg-white rounded-3xl p-8 text-center shadow-sm border border-gray-100 feature-card">
+                        <div class="font-display font-800 text-5xl mb-2" style="color:#25D366">4.2M</div>
+                        <p class="font-body text-gray-500 text-sm">MRE qui envoient régulièrement de l'argent au Maroc
+                            sans suivi numérique partagé</p>
+                    </div>
+                    <div class="bg-white rounded-3xl p-8 text-center shadow-sm border border-gray-100 feature-card">
+                        <div class="font-display font-800 text-5xl mb-2" style="color:#111B21">0</div>
+                        <p class="font-body text-gray-500 text-sm">solution native WhatsApp pour la gestion de finances
+                            collectives adaptée au contexte marocain</p>
+                    </div>
+                </div>
+
+                <!-- Journey steps -->
+                <div class="bg-white rounded-3xl p-8 md:p-12 shadow-sm border border-gray-100 mb-12">
+                    <h3 class="font-display font-700 text-2xl text-center mb-10" style="color:#111B21">Le parcours
+                        utilisateur <span style="color:#25D366">en 5 étapes</span></h3>
+
+                    <div class="space-y-6">
+
+                        <!-- Step 1 -->
+                        <div class="flex items-start gap-6">
+                            <div class="flex-shrink-0 w-12 h-12 rounded-2xl flex items-center justify-center font-display font-800 text-white text-lg"
+                                style="background:linear-gradient(135deg,#075E54,#128C7E)">1</div>
+                            <div class="flex-1 pt-1">
+                                <h4 class="font-display font-700 text-base mb-1" style="color:#111B21">Ajoutez TARIKA à
+                                    votre groupe WhatsApp</h4>
+                                <p class="font-body text-gray-500 text-sm leading-relaxed">Scannez un QR code ou tapez
+                                    le numéro du bot. En 10 secondes, TARIKA est actif dans n'importe quel groupe
+                                    existant. Aucune application à installer pour les membres du groupe.</p>
+                            </div>
+                            <div class="hidden md:flex items-center flex-shrink-0">
+                                <div class="w-16 h-16 rounded-2xl flex items-center justify-center"
+                                    style="background:rgba(7,94,84,.06)">
+                                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#075E54"
+                                        stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                                        <path
+                                            d="M12 2C6.48 2 2 6.48 2 12c0 1.85.5 3.58 1.37 5.07L2 22l5.12-1.34A9.93 9.93 0 0012 22c5.52 0 10-4.48 10-10S17.52 2 12 2z" />
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="ml-6 w-px h-6 bg-gray-200"></div>
+
+                        <!-- Step 2 -->
+                        <div class="flex items-start gap-6">
+                            <div class="flex-shrink-0 w-12 h-12 rounded-2xl flex items-center justify-center font-display font-800 text-white text-lg"
+                                style="background:linear-gradient(135deg,#25D366,#1da851)">2</div>
+                            <div class="flex-1 pt-1">
+                                <h4 class="font-display font-700 text-base mb-1" style="color:#111B21">Envoyez une photo
+                                    de votre ticket</h4>
+                                <p class="font-body text-gray-500 text-sm leading-relaxed">Photographiez n'importe quel
+                                    reçu, facture ou ticket. Le moteur OCR multilingue (FR/AR/Darija) extrait
+                                    immédiatement tous les montants, articles et le total.</p>
+                            </div>
+                            <div class="hidden md:flex items-center flex-shrink-0">
+                                <div class="w-16 h-16 rounded-2xl flex items-center justify-center"
+                                    style="background:rgba(37,211,102,.08)">
+                                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#25D366"
+                                        stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                                        <path
+                                            d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" />
+                                        <circle cx="12" cy="13" r="4" />
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="ml-6 w-px h-6 bg-gray-200"></div>
+
+                        <!-- Step 3 -->
+                        <div class="flex items-start gap-6">
+                            <div class="flex-shrink-0 w-12 h-12 rounded-2xl flex items-center justify-center font-display font-800 text-white text-lg"
+                                style="background:linear-gradient(135deg,#128C7E,#075E54)">3</div>
+                            <div class="flex-1 pt-1">
+                                <h4 class="font-display font-700 text-base mb-1" style="color:#111B21">L'IA répartit et
+                                    propose</h4>
+                                <p class="font-body text-gray-500 text-sm leading-relaxed">TARIKA présente un résumé
+                                    structuré avec chaque part par personne. La répartition peut être égale, pondérée,
+                                    ou personnalisée selon ce qui a été consommé par qui.</p>
+                            </div>
+                            <div class="hidden md:flex items-center flex-shrink-0">
+                                <div class="w-16 h-16 rounded-2xl flex items-center justify-center"
+                                    style="background:rgba(7,94,84,.06)">
+                                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#075E54"
+                                        stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                                        <rect x="3" y="3" width="18" height="18" rx="2" />
+                                        <line x1="3" y1="9" x2="21" y2="9" />
+                                        <line x1="9" y1="21" x2="9" y2="9" />
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="ml-6 w-px h-6 bg-gray-200"></div>
+
+                        <!-- Step 4 -->
+                        <div class="flex items-start gap-6">
+                            <div class="flex-shrink-0 w-12 h-12 rounded-2xl flex items-center justify-center font-display font-800 text-white text-lg"
+                                style="background:linear-gradient(135deg,#111B21,#2d3748)">4</div>
+                            <div class="flex-1 pt-1">
+                                <h4 class="font-display font-700 text-base mb-1" style="color:#111B21">Confirmez en un
+                                    mot</h4>
+                                <p class="font-body text-gray-500 text-sm leading-relaxed">Tapez <strong
+                                        class="text-green-600">OUI</strong> — le Grand Livre (Ledger) du groupe est
+                                    automatiquement mis à jour. Chaque membre reçoit une notification personnelle de ce
+                                    qu'il doit.</p>
+                            </div>
+                            <div class="hidden md:flex items-center flex-shrink-0">
+                                <div class="w-16 h-16 rounded-2xl flex items-center justify-center"
+                                    style="background:rgba(37,211,102,.08)">
+                                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#25D366"
+                                        stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                                        <polyline points="20 6 9 17 4 12" />
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="ml-6 w-px h-6 bg-gray-200"></div>
+
+                        <!-- Step 5 -->
+                        <div class="flex items-start gap-6">
+                            <div class="flex-shrink-0 w-12 h-12 rounded-2xl flex items-center justify-center font-display font-800 text-white text-lg"
+                                style="background:linear-gradient(135deg,#25D366,#075E54)">5</div>
+                            <div class="flex-1 pt-1">
+                                <h4 class="font-display font-700 text-base mb-1" style="color:#111B21">Solde automatique
+                                    & rappels intelligents</h4>
+                                <p class="font-body text-gray-500 text-sm leading-relaxed">Le bot envoie des rappels
+                                    polis si un membre n'a pas réglé sa part. Le tableau de bord du groupe est
+                                    accessible à tout moment via <strong style="color:#111B21">TARIKA solde</strong>
+                                    dans le chat.</p>
+                            </div>
+                            <div class="hidden md:flex items-center flex-shrink-0">
+                                <div class="w-16 h-16 rounded-2xl flex items-center justify-center"
+                                    style="background:rgba(37,211,102,.08)">
+                                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#25D366"
+                                        stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0" />
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Why WhatsApp -->
+                <div class="rounded-3xl p-8 md:p-12" style="background:linear-gradient(135deg,#075E54,#054740)">
+                    <div class="grid md:grid-cols-2 gap-10 items-center">
+                        <div>
+                            <h3 class="font-display font-700 text-2xl text-white mb-4">Pourquoi WhatsApp ?</h3>
+                            <p class="font-body text-white/65 text-sm leading-relaxed mb-6">WhatsApp est l'application
+                                numéro 1 au Maroc avec plus de 20 millions d'utilisateurs actifs. Contrairement aux
+                                applications de paiement isolées, TARIKA s'intègre là où les conversations ont déjà lieu
+                                — dans les groupes existants.</p>
+                            <div class="space-y-3">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-2 h-2 rounded-full flex-shrink-0" style="background:#25D366"></div>
+                                    <span class="text-white/75 text-sm font-body">Zéro friction d'adoption — pas de
+                                        nouveau compte à créer</span>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <div class="w-2 h-2 rounded-full flex-shrink-0" style="background:#25D366"></div>
+                                    <span class="text-white/75 text-sm font-body">Contexte de conversation conservé avec
+                                        l'historique de groupe</span>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <div class="w-2 h-2 rounded-full flex-shrink-0" style="background:#25D366"></div>
+                                    <span class="text-white/75 text-sm font-body">Chiffrement de bout en bout de
+                                        WhatsApp Business API</span>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <div class="w-2 h-2 rounded-full flex-shrink-0" style="background:#25D366"></div>
+                                    <span class="text-white/75 text-sm font-body">Compatible avec tous les téléphones —
+                                        y compris les entrées de gamme</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex justify-center">
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="bg-white/10 rounded-2xl p-5 text-center border border-white/15">
+                                    <div class="font-display font-800 text-3xl text-white mb-1">20M+</div>
+                                    <div class="text-white/55 text-xs font-body">Utilisateurs WhatsApp au Maroc</div>
+                                </div>
+                                <div class="bg-white/10 rounded-2xl p-5 text-center border border-white/15">
+                                    <div class="font-display font-800 text-3xl text-white mb-1">95%</div>
+                                    <div class="text-white/55 text-xs font-body">Taux de pénétration mobile Maroc</div>
+                                </div>
+                                <div class="bg-white/10 rounded-2xl p-5 text-center border border-white/15">
+                                    <div class="font-display font-800 text-3xl text-white mb-1">3s</div>
+                                    <div class="text-white/55 text-xs font-body">Temps moyen de traitement OCR</div>
+                                </div>
+                                <div class="bg-white/10 rounded-2xl p-5 text-center border border-white/15">
+                                    <div class="font-display font-800 text-3xl text-white mb-1">98%</div>
+                                    <div class="text-white/55 text-xs font-body">Précision OCR multilingue IA</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+    </div><!-- /view-concept -->
+
+
+    <!-- ══════════════════════════════════════════════════════════════
+  VIEW 3 — FONCTIONNALITÉS
+══════════════════════════════════════════════════════════════ -->
+    <div id="view-features" class="view-content">
+        <section class="pt-28 pb-24 px-5 min-h-screen" style="background:#F0F2F5">
+            <div class="max-w-6xl mx-auto">
+
+                <!-- Header -->
+                <div class="text-center mb-16">
+                    <div class="inline-flex items-center gap-2 border rounded-full px-4 py-1.5 mb-4 text-xs font-display font-600 tracking-widest uppercase"
+                        style="color:#075E54;border-color:#075E54;background:rgba(7,94,84,.06)">Fonctionnalités</div>
+                    <h2 class="font-display font-800 text-4xl lg:text-5xl mb-4" style="color:#111B21">Tout ce dont vous
+                        avez besoin,<br /><span style="color:#075E54">dans WhatsApp.</span></h2>
+                    <p class="font-body text-gray-500 text-lg max-w-xl mx-auto">Trois modules puissants conçus
+                        spécialement pour la réalité marocaine.</p>
+                </div>
+
+                <!-- Feature 1: AI Ticket Scan -->
+                <div class="bg-white rounded-3xl p-8 md:p-12 shadow-sm border border-gray-100 mb-8 feature-card">
+                    <div class="flex flex-col md:flex-row gap-10 items-start">
+                        <div class="flex-shrink-0">
+                            <div class="w-16 h-16 rounded-3xl flex items-center justify-center"
+                                style="background:linear-gradient(135deg,#075E54,#128C7E)">
+                                <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="white"
+                                    stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                    <path
+                                        d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" />
+                                    <circle cx="12" cy="13" r="4" />
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex flex-wrap items-center gap-3 mb-4">
+                                <h3 class="font-display font-700 text-2xl" style="color:#111B21">AI Ticket Scan</h3>
+                                <span class="tech-tag rounded-full px-3 py-1.5 flex items-center gap-1.5">
+                                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#25D366"
+                                        stroke-width="2" stroke-linecap="round">
+                                        <rect x="3" y="11" width="18" height="10" rx="2" />
+                                        <path d="M12 7V11M9 15h6M7 7a5 5 0 0110 0" />
+                                    </svg>
+                                    Intelligence Artificielle
+                                </span>
+                            </div>
+                            <p class="font-body text-gray-500 text-base leading-relaxed mb-6">Envoyez une photo de votre
+                                ticket et TARIKA extrait automatiquement les articles, les prix, et répartit les frais
+                                entre les membres. Notre moteur OCR basé sur OpenAI Vision est entraîné sur des dizaines
+                                de milliers de tickets marocains — supports le Français, l'Arabe classique et la Darija.
+                            </p>
+                            <div class="grid sm:grid-cols-3 gap-4">
+                                <div class="rounded-2xl p-4 border"
+                                    style="background:rgba(7,94,84,.04);border-color:rgba(7,94,84,.1)">
+                                    <div class="font-display font-700 text-sm mb-1.5" style="color:#075E54">OCR
+                                        Multilingue</div>
+                                    <p class="text-xs text-gray-500 font-body leading-relaxed">Reconnaissance parfaite
+                                        du Français, Arabe et Darija sur un même ticket. Même avec une écriture
+                                        manuscrite.</p>
+                                </div>
+                                <div class="rounded-2xl p-4 border"
+                                    style="background:rgba(37,211,102,.04);border-color:rgba(37,211,102,.12)">
+                                    <div class="font-display font-700 text-sm mb-1.5" style="color:#25D366">Répartition
+                                        IA</div>
+                                    <p class="text-xs text-gray-500 font-body leading-relaxed">L'IA comprend qui a
+                                        commandé quoi et propose une répartition intelligente, égale ou personnalisée.
+                                    </p>
+                                </div>
+                                <div class="rounded-2xl p-4 border border-gray-100" style="background:#f9f9f9">
+                                    <div class="font-display font-700 text-sm mb-1.5" style="color:#111B21">0 Friction
+                                    </div>
+                                    <p class="text-xs text-gray-500 font-body leading-relaxed">Une photo suffit. Aucun
+                                        montant à saisir manuellement. Confirmation en un seul mot.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Feature 2: Family Fund -->
+                <div class="bg-white rounded-3xl p-8 md:p-12 shadow-sm border border-gray-100 mb-8 feature-card">
+                    <div class="flex flex-col md:flex-row gap-10 items-start">
+                        <div class="flex-shrink-0">
+                            <div class="w-16 h-16 rounded-3xl flex items-center justify-center"
+                                style="background:linear-gradient(135deg,#800020,#c0405a)">
+                                <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="white"
+                                    stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+                                    <polyline points="9 22 9 12 15 12 15 22" />
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex flex-wrap items-center gap-3 mb-4">
+                                <h3 class="font-display font-700 text-2xl" style="color:#111B21">Family Fund</h3>
+                                <span class="font-arabic text-lg" style="color:#800020">صندوق العائلة</span>
+                                <span class="tech-tag rounded-full px-3 py-1.5 flex items-center gap-1.5"
+                                    style="background:rgba(128,0,32,.08);color:#800020;border-color:rgba(128,0,32,.2)">
+                                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#800020"
+                                        stroke-width="2" stroke-linecap="round">
+                                        <rect x="3" y="10" width="18" height="11" rx="1" />
+                                        <path d="M3 7l9-4 9 4" />
+                                    </svg>
+                                    Portefeuille Collectif
+                                </span>
+                            </div>
+                            <p class="font-body text-gray-500 text-base leading-relaxed mb-6">Créez un portefeuille
+                                collectif familial transparent pour les grandes occasions : mariages, Aid El Adha, Omra,
+                                funérailles, voyages scolaires. Chaque dirham versé et dépensé est traçable par tous les
+                                membres du groupe.</p>
+
+                            <!-- Progress bar demo -->
+                            <div class="rounded-2xl p-5 border mb-5"
+                                style="background:rgba(128,0,32,.03);border-color:rgba(128,0,32,.1)">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="font-display font-600 text-sm" style="color:#111B21">Mariage de Fatima
+                                        — Juillet 2025</span>
+                                    <span class="font-display font-700 text-sm" style="color:#800020">6 800 / 10 000
+                                        DH</span>
+                                </div>
+                                <div class="w-full h-3 rounded-full bg-gray-100 overflow-hidden">
+                                    <div class="fill-bar h-full rounded-full"
+                                        style="background:linear-gradient(90deg,#800020,#c0405a)"></div>
+                                </div>
+                                <div class="flex justify-between mt-2 text-xs text-gray-400 font-body">
+                                    <span>68% atteint</span>
+                                    <span>3 200 DH restants</span>
+                                </div>
+                            </div>
+
+                            <div class="grid sm:grid-cols-3 gap-4">
+                                <div class="rounded-2xl p-4 border"
+                                    style="background:rgba(128,0,32,.04);border-color:rgba(128,0,32,.1)">
+                                    <div class="font-display font-700 text-sm mb-1.5" style="color:#800020">Objectif &
+                                        Jauge</div>
+                                    <p class="text-xs text-gray-500 font-body leading-relaxed">Visualisez l'avancement
+                                        en temps réel. Chaque contribution est notifiée au groupe.</p>
+                                </div>
+                                <div class="rounded-2xl p-4 border"
+                                    style="background:rgba(128,0,32,.04);border-color:rgba(128,0,32,.1)">
+                                    <div class="font-display font-700 text-sm mb-1.5" style="color:#800020">Rappels
+                                        Automatiques</div>
+                                    <p class="text-xs text-gray-500 font-body leading-relaxed">Le bot rappelle poliment
+                                        les membres en retard sur leurs contributions.</p>
+                                </div>
+                                <div class="rounded-2xl p-4 border border-gray-100" style="background:#f9f9f9">
+                                    <div class="font-display font-700 text-sm mb-1.5" style="color:#111B21">Historique
+                                        Complet</div>
+                                    <p class="text-xs text-gray-500 font-body leading-relaxed">Chaque entrée et sortie
+                                        est archivée avec date, heure et nom du contributeur.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Feature 3: MRE Bridge -->
+                <div class="bg-white rounded-3xl p-8 md:p-12 shadow-sm border border-gray-100 feature-card">
+                    <div class="flex flex-col md:flex-row gap-10 items-start">
+                        <div class="flex-shrink-0">
+                            <div class="w-16 h-16 rounded-3xl flex items-center justify-center"
+                                style="background:linear-gradient(135deg,#1a1a2e,#2d2d44)">
+                                <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="white"
+                                    stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="10" />
+                                    <line x1="2" y1="12" x2="22" y2="12" />
+                                    <path d="M12 2a15.3 15.3 0 010 20M12 2a15.3 15.3 0 000 20" />
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex flex-wrap items-center gap-3 mb-4">
+                                <h3 class="font-display font-700 text-2xl" style="color:#111B21">MRE Bridge</h3>
+                                <span class="tech-tag rounded-full px-3 py-1.5 flex items-center gap-1.5"
+                                    style="background:rgba(30,30,60,.07);color:#1a1a2e;border-color:rgba(30,30,60,.15)">
+                                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#1a1a2e"
+                                        stroke-width="2" stroke-linecap="round">
+                                        <line x1="5" y1="12" x2="19" y2="12" />
+                                        <polyline points="12 5 19 12 12 19" />
+                                    </svg>
+                                    Diaspora → Maroc
+                                </span>
+                            </div>
+                            <p class="font-body text-gray-500 text-base leading-relaxed mb-6">Les Marocains résidant à
+                                l'étranger (MRE) peuvent participer aux dépenses familiales et de groupe depuis
+                                l'Europe. TARIKA intègre directement <strong style="color:#111B21">Wafacash</strong> et
+                                <strong style="color:#111B21">Cash Plus</strong> pour des transferts vers le cash
+                                marocain sans frais cachés.
+                            </p>
+
+                            <!-- Money flow diagram -->
+                            <div class="rounded-2xl p-5 border mb-5"
+                                style="background:rgba(30,30,60,.03);border-color:rgba(30,30,60,.1)">
+                                <div class="flex items-center justify-between gap-4">
+                                    <div class="text-center">
+                                        <div class="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-2"
+                                            style="background:#1a1a2e">
+                                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white"
+                                                stroke-width="1.8" stroke-linecap="round">
+                                                <rect x="2" y="3" width="20" height="14" rx="2" />
+                                                <line x1="8" y1="21" x2="16" y2="21" />
+                                                <line x1="12" y1="17" x2="12" y2="21" />
+                                            </svg>
+                                        </div>
+                                        <div class="text-xs font-display font-600 text-gray-700">Europe</div>
+                                        <div class="text-[10px] text-gray-400 font-body">WhatsApp MRE</div>
+                                    </div>
+                                    <div class="flex-1 relative">
+                                        <div class="h-px w-full"
+                                            style="background:linear-gradient(90deg,#1a1a2e,#25D366)"></div>
+                                        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-2 py-1 rounded-full border border-gray-200 text-[10px] font-display font-600"
+                                            style="color:#25D366;white-space:nowrap">TARIKA</div>
+                                    </div>
+                                    <div class="text-center">
+                                        <div class="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-2"
+                                            style="background:linear-gradient(135deg,#25D366,#1da851)">
+                                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white"
+                                                stroke-width="1.8" stroke-linecap="round">
+                                                <line x1="12" y1="1" x2="12" y2="23" />
+                                                <path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" />
+                                            </svg>
+                                        </div>
+                                        <div class="text-xs font-display font-600 text-gray-700">Maroc</div>
+                                        <div class="text-[10px] text-gray-400 font-body">Wafacash / Cash+</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="grid sm:grid-cols-3 gap-4">
+                                <div class="rounded-2xl p-4 border"
+                                    style="background:rgba(30,30,60,.04);border-color:rgba(30,30,60,.1)">
+                                    <div class="font-display font-700 text-sm mb-1.5" style="color:#1a1a2e">Wafacash &
+                                        Cash+</div>
+                                    <p class="text-xs text-gray-500 font-body leading-relaxed">Intégration API directe
+                                        avec les deux réseaux de cash les plus populaires au Maroc.</p>
+                                </div>
+                                <div class="rounded-2xl p-4 border"
+                                    style="background:rgba(30,30,60,.04);border-color:rgba(30,30,60,.1)">
+                                    <div class="font-display font-700 text-sm mb-1.5" style="color:#1a1a2e">EUR ↔ MAD
+                                        Temps Réel</div>
+                                    <p class="text-xs text-gray-500 font-body leading-relaxed">Conversion automatique au
+                                        taux du marché avec transparence totale sur les frais.</p>
+                                </div>
+                                <div class="rounded-2xl p-4 border border-gray-100" style="background:#f9f9f9">
+                                    <div class="font-display font-700 text-sm mb-1.5" style="color:#111B21">
+                                        Participation à Distance</div>
+                                    <p class="text-xs text-gray-500 font-body leading-relaxed">Contribuez au Family Fund
+                                        ou payez votre part de split depuis n'importe quel pays.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- How it works (green CTA block) -->
+                <div class="rounded-3xl p-8 md:p-12 mt-8" style="background:linear-gradient(135deg,#075E54,#054740)">
+                    <div class="text-center mb-10">
+                        <h3 class="font-display font-700 text-2xl text-white mb-2">Comment ça marche ?</h3>
+                        <p class="text-white/60 font-body text-sm">3 étapes, pas une application.</p>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="text-center">
+                            <div class="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4 font-display font-800 text-xl text-white"
+                                style="background:rgba(37,211,102,.2);border:2px solid rgba(37,211,102,.4)">1</div>
+                            <div class="font-display font-600 text-white text-sm mb-2">Scannez</div>
+                            <div class="font-body text-white/55 text-xs">Envoyez la photo de votre reçu dans le groupe
+                                WhatsApp.</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4 font-display font-800 text-xl text-white"
+                                style="background:rgba(37,211,102,.2);border:2px solid rgba(37,211,102,.4)">2</div>
+                            <div class="font-display font-600 text-white text-sm mb-2">TARIKA Analyse</div>
+                            <div class="font-body text-white/55 text-xs">L'IA extrait les montants et répartit
+                                automatiquement.</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4 font-display font-800 text-xl text-white"
+                                style="background:rgba(37,211,102,.2);border:2px solid rgba(37,211,102,.4)">3</div>
+                            <div class="font-display font-600 text-white text-sm mb-2">Confirmez</div>
+                            <div class="font-body text-white/55 text-xs">Tapez <strong
+                                    style="color:#25D366">OUI</strong> — les comptes sont réglés. C'est tout.</div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+    </div><!-- /view-features -->
+
+
+    <!-- ══════════════════════════════════════════════════════════════
+  VIEW 4 — TARIFS
+══════════════════════════════════════════════════════════════ -->
+    <div id="view-tarifs" class="view-content">
+        <section class="pt-28 pb-24 px-5 min-h-screen" style="background:#F0F2F5">
+            <div class="max-w-6xl mx-auto">
+
+                <!-- Header -->
+                <div class="text-center mb-16">
+                    <div class="inline-flex items-center gap-2 border rounded-full px-4 py-1.5 mb-4 text-xs font-display font-600 tracking-widest uppercase"
+                        style="color:#075E54;border-color:#075E54;background:rgba(7,94,84,.06)">Tarifs</div>
+                    <h2 class="font-display font-800 text-4xl lg:text-5xl mb-4" style="color:#111B21">Choisissez
+                        votre<br /><span style="color:#25D366">formule TARIKA</span></h2>
+                    <p class="font-body text-gray-500 text-lg max-w-xl mx-auto">Commencez gratuitement. Évoluez selon
+                        vos besoins. Aucun engagement, résiliez à tout moment.</p>
+                </div>
+
+                <!-- 3-column pricing -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
+
+                    <!-- FREE -->
+                    <div class="price-card bg-white rounded-3xl p-8 shadow-sm border border-gray-150">
+                        <div class="flex items-center gap-3 mb-6">
+                            <div class="w-12 h-12 rounded-2xl flex items-center justify-center"
+                                style="background:rgba(7,94,84,.08)">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#075E54"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                                </svg>
+                            </div>
+                            <div>
+                                <div
+                                    class="font-display font-700 text-xs uppercase tracking-widest text-gray-400 mb-0.5">
+                                    Formule</div>
+                                <div class="font-display font-800 text-xl" style="color:#111B21">FREE</div>
+                            </div>
+                        </div>
+                        <div class="mb-6">
+                            <span class="font-display font-800 text-5xl" style="color:#111B21">0</span>
+                            <span class="font-body text-gray-400 text-base ml-1">MAD / mois</span>
+                        </div>
+                        <button
+                            class="w-full py-3 rounded-full border-2 border-gray-200 font-display font-600 text-sm text-gray-600 hover:border-gray-300 hover:bg-gray-50 transition-all mb-8">Commencer
+                            gratuitement</button>
+
+                        <div class="space-y-3.5">
+                            <div class="flex items-start gap-3">
+                                <div class="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
+                                    style="background:#DCF8C6"><svg width="10" height="10" viewBox="0 0 12 12"
+                                        fill="none">
+                                        <path d="M2 6l3 3 5-5" stroke="#075E54" stroke-width="2"
+                                            stroke-linecap="round" />
+                                    </svg></div>
+                                <span class="text-sm font-body text-gray-600">Splits de groupe standards</span>
+                            </div>
+                            <div class="flex items-start gap-3">
+                                <div class="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
+                                    style="background:#DCF8C6"><svg width="10" height="10" viewBox="0 0 12 12"
+                                        fill="none">
+                                        <path d="M2 6l3 3 5-5" stroke="#075E54" stroke-width="2"
+                                            stroke-linecap="round" />
+                                    </svg></div>
+                                <span class="text-sm font-body text-gray-600">Scan OCR basique (FR uniquement)</span>
+                            </div>
+                            <div class="flex items-start gap-3">
+                                <div class="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
+                                    style="background:#DCF8C6"><svg width="10" height="10" viewBox="0 0 12 12"
+                                        fill="none">
+                                        <path d="M2 6l3 3 5-5" stroke="#075E54" stroke-width="2"
+                                            stroke-linecap="round" />
+                                    </svg></div>
+                                <span class="text-sm font-body text-gray-600">Jusqu'à 5 membres par groupe</span>
+                            </div>
+                            <div class="flex items-start gap-3">
+                                <div class="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
+                                    style="background:#DCF8C6"><svg width="10" height="10" viewBox="0 0 12 12"
+                                        fill="none">
+                                        <path d="M2 6l3 3 5-5" stroke="#075E54" stroke-width="2"
+                                            stroke-linecap="round" />
+                                    </svg></div>
+                                <span class="text-sm font-body text-gray-600">Historique 30 jours</span>
+                            </div>
+                            <div class="flex items-start gap-3">
+                                <div
+                                    class="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 bg-gray-100">
+                                    <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
+                                        <line x1="3" y1="3" x2="9" y2="9" stroke="#9ca3af" stroke-width="1.8"
+                                            stroke-linecap="round" />
+                                        <line x1="9" y1="3" x2="3" y2="9" stroke="#9ca3af" stroke-width="1.8"
+                                            stroke-linecap="round" />
+                                    </svg>
+                                </div>
+                                <span class="text-sm font-body text-gray-400">Analytics avancés</span>
+                            </div>
+                            <div class="flex items-start gap-3">
+                                <div
+                                    class="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 bg-gray-100">
+                                    <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
+                                        <line x1="3" y1="3" x2="9" y2="9" stroke="#9ca3af" stroke-width="1.8"
+                                            stroke-linecap="round" />
+                                        <line x1="9" y1="3" x2="3" y2="9" stroke="#9ca3af" stroke-width="1.8"
+                                            stroke-linecap="round" />
+                                    </svg>
+                                </div>
+                                <span class="text-sm font-body text-gray-400">Rappels automatiques WhatsApp</span>
+                            </div>
+                            <div class="flex items-start gap-3">
+                                <div
+                                    class="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 bg-gray-100">
+                                    <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
+                                        <line x1="3" y1="3" x2="9" y2="9" stroke="#9ca3af" stroke-width="1.8"
+                                            stroke-linecap="round" />
+                                        <line x1="9" y1="3" x2="3" y2="9" stroke="#9ca3af" stroke-width="1.8"
+                                            stroke-linecap="round" />
+                                    </svg>
+                                </div>
+                                <span class="text-sm font-body text-gray-400">MRE Bridge</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PRO — highlighted -->
+                    <div class="relative price-card rounded-3xl p-8 shadow-xl"
+                        style="background:linear-gradient(160deg,#075E54,#054740);border:2px solid rgba(37,211,102,.3)">
+                        <!-- Pulse ring -->
+                        <div
+                            style="position:absolute;inset:-3px;border-radius:1.6rem;border:2px solid rgba(37,211,102,.3);animation:tierPulse 2.5s ease-in-out infinite;pointer-events:none">
+                        </div>
+                        <!-- Badge -->
+                        <div class="absolute -top-4 left-1/2 -translate-x-1/2 px-5 py-1.5 rounded-full text-xs font-display font-700 text-white uppercase tracking-wider whitespace-nowrap shadow-lg"
+                            style="background:linear-gradient(135deg,#25D366,#1da851)">
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="white" class="inline mr-1"
+                                style="vertical-align:middle">
+                                <polygon
+                                    points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                            </svg>
+                            Plus Populaire
+                        </div>
+
+                        <div class="flex items-center gap-3 mb-6 mt-2">
+                            <div class="w-12 h-12 rounded-2xl flex items-center justify-center"
+                                style="background:rgba(37,211,102,.2)">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="#25D366" stroke="#25D366"
+                                    stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+                                    <polygon
+                                        points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                                </svg>
+                            </div>
+                            <div>
+                                <div class="font-display font-700 text-xs uppercase tracking-widest mb-0.5"
+                                    style="color:rgba(255,255,255,.55)">Formule</div>
+                                <div class="font-display font-800 text-xl text-white">PRO</div>
+                            </div>
+                        </div>
+                        <div class="mb-6">
+                            <span class="font-display font-800 text-5xl text-white">29</span>
+                            <span class="font-body text-white/50 text-base ml-1">MAD / mois</span>
+                        </div>
+                        <button
+                            class="btn-green w-full py-3 rounded-full font-display font-600 text-sm text-white mb-8 shadow-xl">Démarrer
+                            Pro</button>
+
+                        <div class="space-y-3.5">
+                            <div class="flex items-start gap-3">
+                                <div class="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
+                                    style="background:rgba(37,211,102,.25)"><svg width="10" height="10"
+                                        viewBox="0 0 12 12" fill="none">
+                                        <path d="M2 6l3 3 5-5" stroke="#25D366" stroke-width="2"
+                                            stroke-linecap="round" />
+                                    </svg></div><span class="text-sm font-body text-white/80">Tout le plan Free, plus
+                                    :</span>
+                            </div>
+                            <div class="flex items-start gap-3">
+                                <div class="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
+                                    style="background:rgba(37,211,102,.25)"><svg width="10" height="10"
+                                        viewBox="0 0 12 12" fill="none">
+                                        <path d="M2 6l3 3 5-5" stroke="#25D366" stroke-width="2"
+                                            stroke-linecap="round" />
+                                    </svg></div><span class="text-sm font-body text-white/80">OCR prioritaire
+                                    FR/AR/Darija</span>
+                            </div>
+                            <div class="flex items-start gap-3">
+                                <div class="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
+                                    style="background:rgba(37,211,102,.25)"><svg width="10" height="10"
+                                        viewBox="0 0 12 12" fill="none">
+                                        <path d="M2 6l3 3 5-5" stroke="#25D366" stroke-width="2"
+                                            stroke-linecap="round" />
+                                    </svg></div><span class="text-sm font-body text-white/80">Analytics avancés &
+                                    tableaux de bord</span>
+                            </div>
+                            <div class="flex items-start gap-3">
+                                <div class="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
+                                    style="background:rgba(37,211,102,.25)"><svg width="10" height="10"
+                                        viewBox="0 0 12 12" fill="none">
+                                        <path d="M2 6l3 3 5-5" stroke="#25D366" stroke-width="2"
+                                            stroke-linecap="round" />
+                                    </svg></div><span class="text-sm font-body text-white/80">Rappels automatiques
+                                    WhatsApp</span>
+                            </div>
+                            <div class="flex items-start gap-3">
+                                <div class="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
+                                    style="background:rgba(37,211,102,.25)"><svg width="10" height="10"
+                                        viewBox="0 0 12 12" fill="none">
+                                        <path d="M2 6l3 3 5-5" stroke="#25D366" stroke-width="2"
+                                            stroke-linecap="round" />
+                                    </svg></div><span class="text-sm font-body text-white/80">Membres illimités par
+                                    groupe</span>
+                            </div>
+                            <div class="flex items-start gap-3">
+                                <div class="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
+                                    style="background:rgba(37,211,102,.25)"><svg width="10" height="10"
+                                        viewBox="0 0 12 12" fill="none">
+                                        <path d="M2 6l3 3 5-5" stroke="#25D366" stroke-width="2"
+                                            stroke-linecap="round" />
+                                    </svg></div><span class="text-sm font-body text-white/80">Family Fund (صندوق
+                                    العائلة)</span>
+                            </div>
+                            <div class="flex items-start gap-3">
+                                <div class="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
+                                    style="background:rgba(37,211,102,.25)"><svg width="10" height="10"
+                                        viewBox="0 0 12 12" fill="none">
+                                        <path d="M2 6l3 3 5-5" stroke="#25D366" stroke-width="2"
+                                            stroke-linecap="round" />
+                                    </svg></div><span class="text-sm font-body text-white/80">Historique illimité</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- MAX -->
+                    <div class="price-card bg-white rounded-3xl p-8 shadow-sm border border-gray-150">
+                        <div class="flex items-center gap-3 mb-6">
+                            <div class="w-12 h-12 rounded-2xl flex items-center justify-center"
+                                style="background:rgba(30,30,60,.07)">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1a1a2e"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="2" y="7" width="20" height="14" rx="2" />
+                                    <path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16" />
+                                </svg>
+                            </div>
+                            <div>
+                                <div
+                                    class="font-display font-700 text-xs uppercase tracking-widest text-gray-400 mb-0.5">
+                                    Formule</div>
+                                <div class="font-display font-800 text-xl" style="color:#111B21">MAX</div>
+                            </div>
+                        </div>
+                        <div class="mb-1">
+                            <span class="font-display font-800 text-5xl" style="color:#111B21">99</span>
+                            <span class="font-body text-gray-400 text-base ml-1">MAD / résidence</span>
+                        </div>
+                        <div class="text-xs text-gray-400 font-body mb-6">Par mois · Facturation annuelle</div>
+                        <button
+                            class="w-full py-3 rounded-full border-2 font-display font-600 text-sm transition-all mb-8 hover:text-white"
+                            style="border-color:#1a1a2e;color:#1a1a2e" onmouseover="this.style.background='#1a1a2e'"
+                            onmouseout="this.style.background='transparent'">Contacter les Ventes</button>
+
+                        <div class="space-y-3.5">
+                            <div class="flex items-start gap-3">
+                                <div class="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
+                                    style="background:#f0f0f8"><svg width="10" height="10" viewBox="0 0 12 12"
+                                        fill="none">
+                                        <path d="M2 6l3 3 5-5" stroke="#1a1a2e" stroke-width="2"
+                                            stroke-linecap="round" />
+                                    </svg></div><span class="text-sm font-body text-gray-600">Tout le plan Pro, plus
+                                    :</span>
+                            </div>
+                            <div class="flex items-start gap-3">
+                                <div class="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
+                                    style="background:#f0f0f8"><svg width="10" height="10" viewBox="0 0 12 12"
+                                        fill="none">
+                                        <path d="M2 6l3 3 5-5" stroke="#1a1a2e" stroke-width="2"
+                                            stroke-linecap="round" />
+                                    </svg></div><span class="text-sm font-body text-gray-600">Configuration B2B
+                                    entreprise</span>
+                            </div>
+                            <div class="flex items-start gap-3">
+                                <div class="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
+                                    style="background:#f0f0f8"><svg width="10" height="10" viewBox="0 0 12 12"
+                                        fill="none">
+                                        <path d="M2 6l3 3 5-5" stroke="#1a1a2e" stroke-width="2"
+                                            stroke-linecap="round" />
+                                    </svg></div><span class="text-sm font-body text-gray-600">Résidences étudiantes
+                                    (groupes illimités)</span>
+                            </div>
+                            <div class="flex items-start gap-3">
+                                <div class="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
+                                    style="background:#f0f0f8"><svg width="10" height="10" viewBox="0 0 12 12"
+                                        fill="none">
+                                        <path d="M2 6l3 3 5-5" stroke="#1a1a2e" stroke-width="2"
+                                            stroke-linecap="round" />
+                                    </svg></div><span class="text-sm font-body text-gray-600">Canaux MRE à grande
+                                    échelle</span>
+                            </div>
+                            <div class="flex items-start gap-3">
+                                <div class="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
+                                    style="background:#f0f0f8"><svg width="10" height="10" viewBox="0 0 12 12"
+                                        fill="none">
+                                        <path d="M2 6l3 3 5-5" stroke="#1a1a2e" stroke-width="2"
+                                            stroke-linecap="round" />
+                                    </svg></div><span class="text-sm font-body text-gray-600">API webhook
+                                    personnalisée</span>
+                            </div>
+                            <div class="flex items-start gap-3">
+                                <div class="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
+                                    style="background:#f0f0f8"><svg width="10" height="10" viewBox="0 0 12 12"
+                                        fill="none">
+                                        <path d="M2 6l3 3 5-5" stroke="#1a1a2e" stroke-width="2"
+                                            stroke-linecap="round" />
+                                    </svg></div><span class="text-sm font-body text-gray-600">Support dédié 24/7</span>
+                            </div>
+                            <div class="flex items-start gap-3">
+                                <div class="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
+                                    style="background:#f0f0f8"><svg width="10" height="10" viewBox="0 0 12 12"
+                                        fill="none">
+                                        <path d="M2 6l3 3 5-5" stroke="#1a1a2e" stroke-width="2"
+                                            stroke-linecap="round" />
+                                    </svg></div><span class="text-sm font-body text-gray-600">Tableau de bord admin
+                                    personnalisé</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- FAQ notice -->
+                <div class="mt-10 text-center">
+                    <p class="font-body text-gray-400 text-sm">Toutes les formules incluent le chiffrement de bout en
+                        bout WhatsApp Business API. <br class="hidden md:block" />Aucune carte bancaire requise pour
+                        commencer.</p>
+                </div>
+
+            </div>
+        </section>
+    </div><!-- /view-tarifs -->
+
+
+    <!-- ══════════════════════════════════════════════════════════════
+  VIEW 5 — NOTRE ÉQUIPE
+══════════════════════════════════════════════════════════════ -->
+    <div id="view-team" class="view-content">
+        <section class="pt-28 pb-24 px-5 min-h-screen bg-white">
+            <div class="max-w-6xl mx-auto">
+
+                <!-- Header -->
+                <div class="text-center mb-16">
+                    <div class="inline-flex items-center gap-2 border rounded-full px-4 py-1.5 mb-4 text-xs font-display font-600 tracking-widest uppercase"
+                        style="color:#800020;border-color:#800020;background:rgba(128,0,32,.06)">Notre Équipe</div>
+                    <h2 class="font-display font-800 text-4xl lg:text-5xl mb-4" style="color:#111B21">Construits par des
+                        <span style="color:#075E54">passionnés</span><br />du Maroc.
+                    </h2>
+                    <p class="font-body text-gray-500 text-lg max-w-md mx-auto">Quatre étudiants d'Oujda qui
+                        transforment la façon dont le Maroc partage ses finances.</p>
+                </div>
+
+                <!-- Team grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+
+                    <!-- Oumaima -->
+                    <div class="team-card bg-white rounded-3xl p-6 border border-gray-100 shadow-sm text-center">
+                        <div class="relative w-28 h-28 mx-auto mb-4">
+                            <div class="w-full h-full rounded-full overflow-hidden"
+                                style="box-shadow:0 0 0 3px white,0 0 0 5px #c0405a">
+                                <img src="data:image/jpeg;base64,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"
+                                    alt="Oumaima" style="width:100%;height:100%;object-fit:cover" />
+                            </div>
+                        </div>
+                        <div class="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 mb-3 text-xs font-display font-600"
+                            style="background:rgba(128,0,32,.08);color:#800020">
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#800020"
+                                stroke-width="2" stroke-linecap="round">
+                                <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+                                <circle cx="9" cy="7" r="4" />
+                                <path d="M23 21v-2a4 4 0 00-3-3.87" />
+                                <path d="M16 3.13a4 4 0 010 7.75" />
+                            </svg>
+                            Lead Community &amp; UX
+                        </div>
+                        <h3 class="font-display font-700 text-base mb-0.5" style="color:#111B21">Oumaima El Bouinaa</h3>
+                        <p class="font-body text-gray-400 text-xs mb-3">Étudiante ENCG Oujda</p>
+                        <p class="font-body text-gray-500 text-xs leading-relaxed mb-4">Voix client, communauté et
+                            stratégie UX. Oumaima transforme les besoins des utilisateurs en parcours WhatsApp intuitifs
+                            et fluides.</p>
+                        <div class="flex flex-wrap gap-1.5 justify-center">
+                            <span class="tech-tag rounded-full px-2.5 py-1">UX Research</span>
+                            <span class="tech-tag rounded-full px-2.5 py-1">Community</span>
+                            <span class="tech-tag rounded-full px-2.5 py-1">Stratégie</span>
+                        </div>
+                    </div>
+
+                    <!-- Marouane (featured) -->
+                    <div class="team-card rounded-3xl p-6 text-center relative overflow-hidden"
+                        style="background:linear-gradient(160deg,#075E54,#054740);border:1px solid rgba(37,211,102,.2)">
+                        <div class="absolute top-0 right-0 w-36 h-36 rounded-full pointer-events-none"
+                            style="background:radial-gradient(circle,rgba(37,211,102,.15),transparent);transform:translate(30%,-30%)">
+                        </div>
+                        <div class="relative w-28 h-28 mx-auto mb-4">
+                            <div class="w-full h-full rounded-full overflow-hidden"
+                                style="box-shadow:0 0 0 3px #054740,0 0 0 5px #25D366">
+                                <img src="data:image/jpeg;base64,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"
+                                    alt="Marouane" style="width:100%;height:100%;object-fit:cover" />
+                            </div>
+                        </div>
+                        <div class="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 mb-3 text-xs font-display font-600"
+                            style="background:rgba(37,211,102,.2);color:#25D366">
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#25D366"
+                                stroke-width="2" stroke-linecap="round">
+                                <rect x="2" y="3" width="20" height="14" rx="2" />
+                                <line x1="8" y1="21" x2="16" y2="21" />
+                                <line x1="12" y1="17" x2="12" y2="21" />
+                            </svg>
+                            Frontend Developer &amp; Designer
+                        </div>
+                        <h3 class="font-display font-700 text-base text-white mb-0.5">Marouane Boudlal</h3>
+                        <p class="font-body text-white/50 text-xs mb-3">Étudiant ESTO · 2e année</p>
+                        <p class="font-body text-white/65 text-xs leading-relaxed mb-4">UI/UX Bot WhatsApp, Landing Page
+                            &amp; Visual Pitch. Architecte visuel de TARIKA — interfaces premium qui rendent la finance
+                            belle et accessible.</p>
+                        <div class="flex flex-wrap gap-1.5 justify-center">
+                            <span class="rounded-full px-2.5 py-1 text-[11px] font-display font-600"
+                                style="background:rgba(37,211,102,.15);color:#25D366;border:1px solid rgba(37,211,102,.25)">Figma</span>
+                            <span class="rounded-full px-2.5 py-1 text-[11px] font-display font-600"
+                                style="background:rgba(37,211,102,.15);color:#25D366;border:1px solid rgba(37,211,102,.25)">Photoshop</span>
+                            <span class="rounded-full px-2.5 py-1 text-[11px] font-display font-600"
+                                style="background:rgba(37,211,102,.15);color:#25D366;border:1px solid rgba(37,211,102,.25)">Illustrator</span>
+                            <span class="rounded-full px-2.5 py-1 text-[11px] font-display font-600"
+                                style="background:rgba(37,211,102,.15);color:#25D366;border:1px solid rgba(37,211,102,.25)">TailwindCSS</span>
+                        </div>
+                    </div>
+
+                    <!-- Zakariyae -->
+                    <div class="team-card bg-white rounded-3xl p-6 border border-gray-100 shadow-sm text-center">
+                        <div class="relative w-28 h-28 mx-auto mb-4">
+                            <div class="w-full h-full rounded-full overflow-hidden"
+                                style="box-shadow:0 0 0 3px white,0 0 0 5px #1a1a2e">
+                                <img src="data:image/jpeg;base64,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"
+                                    alt="Zakariyae" style="width:100%;height:100%;object-fit:cover" />
+                            </div>
+                        </div>
+                        <div class="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 mb-3 text-xs font-display font-600"
+                            style="background:rgba(30,30,60,.07);color:#1a1a2e">
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#1a1a2e"
+                                stroke-width="2" stroke-linecap="round">
+                                <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71" />
+                                <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71" />
+                            </svg>
+                            API Integration Engineer
+                        </div>
+                        <h3 class="font-display font-700 text-base mb-0.5" style="color:#111B21">Zakariyae</h3>
+                        <p class="font-body text-gray-400 text-xs mb-3">Génie Informatique · 4e année</p>
+                        <p class="font-body text-gray-500 text-xs leading-relaxed mb-4">Twilio WhatsApp API, OpenAI
+                            Vision OCR, et intégrations Wafacash &amp; Cash Plus. Il connecte le bot au monde réel.</p>
+                        <div class="flex flex-wrap gap-1.5 justify-center">
+                            <span class="tech-tag rounded-full px-2.5 py-1">Twilio API</span>
+                            <span class="tech-tag rounded-full px-2.5 py-1">OpenAI Vision</span>
+                            <span class="tech-tag rounded-full px-2.5 py-1">Wafacash</span>
+                        </div>
+                    </div>
+
+                    <!-- Douae -->
+                    <div class="team-card bg-white rounded-3xl p-6 border border-gray-100 shadow-sm text-center">
+                        <div class="relative w-28 h-28 mx-auto mb-4">
+                            <div class="w-full h-full rounded-full overflow-hidden"
+                                style="box-shadow:0 0 0 3px white,0 0 0 5px #25D366">
+                                <img src="data:image/jpeg;base64,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"
+                                    alt="Douae" style="width:100%;height:100%;object-fit:cover" />
+                            </div>
+                        </div>
+                        <div class="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 mb-3 text-xs font-display font-600"
+                            style="background:rgba(37,211,102,.08);color:#075E54">
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#075E54"
+                                stroke-width="2" stroke-linecap="round">
+                                <rect x="2" y="2" width="20" height="8" rx="2" />
+                                <rect x="2" y="14" width="20" height="8" rx="2" />
+                                <line x1="6" y1="6" x2="6.01" y2="6" />
+                                <line x1="6" y1="18" x2="6.01" y2="18" />
+                            </svg>
+                            Backend Developer
+                        </div>
+                        <h3 class="font-display font-700 text-base mb-0.5" style="color:#111B21">Douae Ayachi</h3>
+                        <p class="font-body text-gray-400 text-xs mb-3">Computer Science Engineer</p>
+                        <p class="font-body text-gray-500 text-xs leading-relaxed mb-4">Bot Core Architecture, base de
+                            données Supabase &amp; logique serveur. Elle construit le moteur qui fait tourner TARIKA
+                            24h/24.</p>
+                        <div class="flex flex-wrap gap-1.5 justify-center">
+                            <span class="tech-tag rounded-full px-2.5 py-1">Python</span>
+                            <span class="tech-tag rounded-full px-2.5 py-1">Supabase</span>
+                            <span class="tech-tag rounded-full px-2.5 py-1">Bot Core</span>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- CTA strip -->
+                <div class="mt-14 rounded-3xl p-8 md:p-12 text-center relative overflow-hidden"
+                    style="background:linear-gradient(135deg,#075E54,#054740)">
+                    <div class="absolute inset-0"
+                        style="background:radial-gradient(ellipse 60% 80% at 80% 50%,rgba(255,255,255,.06),transparent)">
+                    </div>
+                    <div class="relative">
+                        <div class="font-arabic text-4xl text-white/15 mb-2">طريقة</div>
+                        <h3 class="font-display font-700 text-2xl text-white mb-3">Ensemble, on réinvente la finance au
+                            Maroc.</h3>
+                        <p class="font-body text-white/55 text-sm mb-6 max-w-md mx-auto">TARIKA est né d'une vraie
+                            douleur vécue. Construit à Oujda, pour le Maroc et la diaspora.</p>
+                        <button onclick="showView('view-home')"
+                            class="btn-green inline-flex items-center gap-2 text-white font-display font-600 px-8 py-3.5 rounded-full shadow-xl text-sm">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="white">
+                                <path
+                                    d="M12 2C6.48 2 2 6.48 2 12c0 1.85.5 3.58 1.37 5.07L2 22l5.12-1.34A9.93 9.93 0 0012 22c5.52 0 10-4.48 10-10S17.52 2 12 2z" />
+                            </svg>
+                            Voir la Demo
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+    </div><!-- /view-team -->
+
+
+    <!-- ══════════════════════════════════════════
+  FOOTER (persistent across all views)
+══════════════════════════════════════════ -->
+    <footer style="background:#033830">
+        <div class="max-w-6xl mx-auto px-5 py-12">
+            <div
+                class="flex flex-col md:flex-row justify-between items-start gap-8 mb-10 pb-10 border-b border-white/10">
+                <!-- Brand -->
+                <div class="max-w-xs">
+                    <div class="flex items-center gap-2.5 mb-4">
+                        <img src="data:image/png;base64,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"
+                            alt="TARIKA" style="height:38px;width:auto;object-fit:contain" />
+                    </div>
+                    <p class="font-body text-white/45 text-sm leading-relaxed">Le premier bot WhatsApp natif avec IA
+                        pour gérer les dépenses partagées au Maroc.</p>
+                </div>
+                <!-- Links -->
+                <div class="grid grid-cols-2 gap-8 text-sm">
+                    <div>
+                        <div class="font-display font-600 text-white/75 mb-3 text-xs uppercase tracking-widest">Produit
+                        </div>
+                        <ul class="space-y-2">
+                            <li><button onclick="showView('view-home')"
+                                    class="text-white/45 hover:text-white/80 transition-colors font-body">Accueil</button>
+                            </li>
+                            <li><button onclick="showView('view-concept')"
+                                    class="text-white/45 hover:text-white/80 transition-colors font-body">Concept</button>
+                            </li>
+                            <li><button onclick="showView('view-features')"
+                                    class="text-white/45 hover:text-white/80 transition-colors font-body">Fonctionnalités</button>
+                            </li>
+                            <li><button onclick="showView('view-tarifs')"
+                                    class="text-white/45 hover:text-white/80 transition-colors font-body">Tarifs</button>
+                            </li>
+                            <li><button onclick="showView('view-team')"
+                                    class="text-white/45 hover:text-white/80 transition-colors font-body">Notre
+                                    Équipe</button></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <div class="font-display font-600 text-white/75 mb-3 text-xs uppercase tracking-widest">Modules
+                        </div>
+                        <ul class="space-y-2">
+                            <li><span class="text-white/45 font-body">AI Ticket Scan</span></li>
+                            <li><span class="text-white/45 font-body">Family Fund</span></li>
+                            <li><span class="text-white/45 font-body">MRE Bridge</span></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom -->
+            <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+                <div class="font-body text-white/35 text-sm">TARIKA © <strong
+                        class="text-white/60 font-display">DiNext'26 Hackathon</strong> — FS Oujda</div>
+                <div class="flex flex-wrap gap-2 justify-center">
+                    <span class="rounded-full px-3 py-1 text-[10px] font-display font-600 uppercase tracking-widest"
+                        style="background:rgba(37,211,102,.1);color:rgba(37,211,102,.7);border:1px solid rgba(37,211,102,.2)">WhatsApp
+                        API</span>
+                    <span class="rounded-full px-3 py-1 text-[10px] font-display font-600 uppercase tracking-widest"
+                        style="background:rgba(37,211,102,.1);color:rgba(37,211,102,.7);border:1px solid rgba(37,211,102,.2)">Python</span>
+                    <span class="rounded-full px-3 py-1 text-[10px] font-display font-600 uppercase tracking-widest"
+                        style="background:rgba(37,211,102,.1);color:rgba(37,211,102,.7);border:1px solid rgba(37,211,102,.2)">OCR
+                        · NLP</span>
+                    <span class="rounded-full px-3 py-1 text-[10px] font-display font-600 uppercase tracking-widest"
+                        style="background:rgba(37,211,102,.1);color:rgba(37,211,102,.7);border:1px solid rgba(37,211,102,.2)">Supabase</span>
+                    <span class="rounded-full px-3 py-1 text-[10px] font-display font-600 uppercase tracking-widest"
+                        style="background:rgba(37,211,102,.1);color:rgba(37,211,102,.7);border:1px solid rgba(37,211,102,.2)">Wafacash</span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+
+    <!-- ══════════════════════════════════════════
+  VANILLA JS — SPA ROUTER
+══════════════════════════════════════════ -->
+    <script>
+        const VIEWS = ['view-home', 'view-concept', 'view-features', 'view-tarifs', 'view-team'];
+
+        function showView(viewId) {
+            // Hide all
+            VIEWS.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) { el.classList.remove('view-active'); }
+            });
+
+            // Show target
+            const target = document.getElementById(viewId);
+            if (target) {
+                target.classList.add('view-active');
+            }
+
+            // Update nav active states
+            document.querySelectorAll('.nav-link[data-view]').forEach(link => {
+                link.classList.toggle('active', link.dataset.view === viewId);
+            });
+
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            // Trigger reveal for new view
+            setTimeout(() => {
+                target.querySelectorAll('.reveal').forEach(el => {
+                    el.classList.add('visible');
+                });
+            }, 100);
+        }
+
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobileMenu');
+            menu.classList.toggle('hidden');
+        }
+
+        function selectTier(tier) {
+            document.querySelectorAll('.tier-card').forEach(c => c.classList.remove('selected'));
+            const el = document.querySelector(`[data-tier="${tier}"]`);
+            if (el) el.classList.add('selected');
+        }
+
+        // Navbar scroll shadow
+        const navbar = document.getElementById('navbar');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 30) {
+                navbar.style.boxShadow = '0 4px 20px rgba(0,0,0,.08)';
+                navbar.style.background = 'rgba(255,255,255,.97)';
+            } else {
+                navbar.style.boxShadow = '';
+                navbar.style.background = 'rgba(255,255,255,.92)';
+            }
+        });
+
+        // Scroll reveal observer (for views already visible)
+        const revealObs = new IntersectionObserver(entries => {
+            entries.forEach(e => {
+                if (e.isIntersecting) { e.target.classList.add('visible'); revealObs.unobserve(e.target); }
+            });
+        }, { threshold: 0.1 });
+
+        // Init: show home
+        document.addEventListener('DOMContentLoaded', () => {
+            showView('view-home');
+            selectTier('pro');
+            document.querySelectorAll('.reveal').forEach(el => revealObs.observe(el));
+        });
+    </script>
+
+</body>
+
+</html>
